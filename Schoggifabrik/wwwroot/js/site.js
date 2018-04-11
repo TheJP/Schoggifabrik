@@ -6,4 +6,7 @@
         matchBrackets: true,
         theme: 'material'
     });
+
+    editor.focus();
+    editor.setCursor(editor.lineCount(), 0);
 })();
