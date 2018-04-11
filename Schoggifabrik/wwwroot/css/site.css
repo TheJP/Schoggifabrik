@@ -1,15 +1,41 @@
-﻿body {
+﻿/* General */
+
+h1, h2, h3, h4, h5 {
+    font-family: 'Prompt', sans-serif;
+}
+
+body {
     padding-bottom: 20px;
+    font-family: 'Work Sans', sans-serif;
     color: white;
 }
+
+button {
+    margin-top: 10px;
+    background-color: #168900;
+    padding: 5px 10px;
+    border-top: none;
+    border-left: none;
+    border-right: 1px solid #263238;
+    border-bottom: 1px solid #263238;
+}
+
+button:hover, button:focus {
+    background-color: #1baa00;
+}
+
+button:active {
+    border-top: 1px solid #263238;
+    border-left: 1px solid #263238;
+    border-right: none;
+    border-bottom: none;
+}
+
+/* Layout */
 
 .body-content {
     background-color: #263238;
     padding-bottom: 20px;
-}
-
-.top-banner {
-    margin-top: 30px;
 }
 
 .top-banner, footer {
@@ -17,6 +43,24 @@
     background-color: #168900;
     padding: 5px 20px;
 }
+
+@media only screen and (min-width: 768px) {
+    .top-banner {
+        margin-top: 30px;
+    }
+
+    #input-section {
+        float: left;
+        width: 50%;
+    }
+
+    #output-section {
+        float: right;
+        width: 50%;
+    }
+}
+
+/* Code Window */
 
 textarea {
     color: white;

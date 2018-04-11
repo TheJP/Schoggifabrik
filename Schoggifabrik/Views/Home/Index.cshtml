@@ -1,13 +1,35 @@
-﻿<h1>@*Schoggifabrik*@--</h1>
-<form asp-area="" asp-controller="Home" asp-action="Index" method="post">
-    <textarea id="code" name="code">
+﻿<h1>Schoggifabrik &gt;</h1>
+
+<section>
+    <h2>Flavor</h2>
+    <p>here comes the flavor</p>
+</section>
+
+<section id="input-section">
+    <h2>Input</h2>
+    <p>None</p>
+</section>
+
+<section id="output-section">
+    <h2>Output</h2>
+    <p>Everything</p>
+</section>
+
+<div class="clearfix"></div>
+
+<section id="code-section">
+    <h2>Code</h2>
+    <form asp-area="" asp-controller="Home" asp-action="Index" method="post">
+        <textarea id="code" name="code">
 main = do
-    (a:b:vs) <- (fmap words getContents)
-                let (w, h, values)=(readInt a, readInt b, fmap readInt vs)
-                print w
-                print h
-                readInt :: String -> Int
+    (a:b:vs) &lt;- (fmap words getContents)
+    let (w, h, values)=(readInt a, readInt b, fmap readInt vs)
+    print w
+    print h
+
+readInt :: String -> Int
 readInt = read
-    </textarea>
-    <button type="submit">Send Submission</button>
-</form>
+        </textarea>
+        <button type="submit"><span class="glyphicon glyphicon-send"></span> Send Submission</button>
+    </form>
+</section>
