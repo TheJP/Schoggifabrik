@@ -1,18 +1,20 @@
-﻿<h1>Schoggifabrik &gt;</h1>
+﻿@model Schoggifabrik.Models.TaskViewModel
+
+<h1>Schoggifabrik &gt;</h1>
 
 <section>
     <h2>Flavor</h2>
-    <p>here comes the flavor</p>
+    <p>@Html.Raw(Model.Flavor)</p>
 </section>
 
 <section id="input-section">
     <h2>Input</h2>
-    <p>None</p>
+    <p>@Html.Raw(Model.Input)</p>
 </section>
 
 <section id="output-section">
     <h2>Output</h2>
-    <p>Everything</p>
+    <p>@Html.Raw(Model.Output)</p>
 </section>
 
 <div class="clearfix"></div>
@@ -20,7 +22,7 @@
 <section id="code-section">
     <h2>Code</h2>
     <form asp-area="" asp-controller="Home" asp-action="Index" method="post">
-        <textarea id="code" name="code">
+        <textarea id="code" name="code">@Html.Raw(Model.StubCode)@*
 main = do
     (a:b:vs) &lt;- (fmap words getContents)
     let (w, h, values)=(readInt a, readInt b, fmap readInt vs)
@@ -29,7 +31,7 @@ main = do
 
 readInt :: String -> Int
 readInt = read
-        </textarea>
+        *@</textarea>
         <button type="submit"><span class="glyphicon glyphicon-send"></span> Send Submission</button>
     </form>
 </section>

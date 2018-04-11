@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Schoggifabrik.Data;
 using Schoggifabrik.Models;
 
 namespace Schoggifabrik.Controllers
@@ -17,14 +18,13 @@ namespace Schoggifabrik.Controllers
 
         public IActionResult Index()
         {
-            return View();
+            return View(Tasks.AsList.First());
         }
 
         [HttpPost]
-        public IActionResult Index(string code)
+        public IActionResult Index([FromForm] string code)
         {
-            logger.LogWarning(code);
-            return View();
+            return RedirectToAction(nameof(Index));
         }
 
         public IActionResult Error()

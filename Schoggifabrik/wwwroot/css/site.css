@@ -31,6 +31,11 @@ button:active {
     border-bottom: none;
 }
 
+span.highlight {
+    color: #168900;
+    font-weight: bold;
+}
+
 /* Layout */
 
 .body-content {

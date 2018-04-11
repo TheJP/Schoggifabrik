@@ -1,9 +1,9 @@
 ﻿(() => {
-    const textarea = document.getElementById("code");
-    textarea.value = textarea.value.trim();
-    const editor = CodeMirror.fromTextArea(document.getElementById("code"), {
+    const textarea = document.getElementById('code');
+    textarea.value = textarea.value.trim() + '\n';
+    const editor = CodeMirror.fromTextArea(textarea, {
         lineNumbers: true,
         matchBrackets: true,
-        theme: "material"
+        theme: 'material'
     });
 })();
