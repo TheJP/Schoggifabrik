@@ -11,6 +11,11 @@ namespace Schoggifabrik.Services
     public class TaskService
     {
         private const int MaxNumberOfTasks = 20;
+        private const int MillisecondsCompileDuration = 30 * 1000;
+        private const int MillisecondsTestCaseDuration = 30 * 1000;
+
+        private const string CompileCommand = "run --rm --network none -v {}:/hs/code.hs:ro -v volume-{}:/hs/output -w /hs haskell:8 bash -c \"ghc code.hs && mv code output/runnable\"";
+        private const string RunCommand = "run -i --rm --network none -v volume-{}:/hs:ro -w /hs haskell:8 ./runnable < {} | head --bytes=3M > {}";
 
         private readonly ILogger<TaskService> logger;
         private readonly ConcurrentDictionary<string, TaskData> tasks = new ConcurrentDictionary<string, TaskData>();
@@ -45,8 +50,11 @@ namespace Schoggifabrik.Services
 
             try
             {
+                logger.LogInformation("Storing code as file for task {}", task.TaskId);
+                // TODO: Save code as file
                 logger.LogInformation("Start to compile task {}", task.TaskId);
                 // TODO: Compile
+                //RunDockerCommand(string.Format(CompileCommand, ))
                 logger.LogInformation("Start to run test cases for task {}", task.TaskId);
                 // TODO: Run all test cases
             }
