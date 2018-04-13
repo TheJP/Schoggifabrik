@@ -29,14 +29,16 @@ namespace Schoggifabrik.Controllers
         }
 
         [HttpPost]
-        public IActionResult Index([FromForm] string code, [FromForm] int taskNumber)
+        public IActionResult Index([FromForm] string code, [FromForm] int problemNumber)
         {
             var session = HttpContext.GetSessionData();
             if (session.IsTaskRunning) { return BadRequest(); }
 
             try
             {
-                var taskId = TaskService.CreateTask(taskNumber, code);
+                var taskId = TaskService.CreateTask(problemNumber, code);
+                session = session.SetRunningTaskId(taskId);
+                HttpContext.SetSessionData(session);
             }
             catch (TooManyTasksException)
             {
