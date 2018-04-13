@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Schoggifabrik.Services;
 
 namespace Schoggifabrik
 {
@@ -30,6 +31,8 @@ namespace Schoggifabrik
                 options.IdleTimeout = TimeSpan.FromDays(7);
                 options.Cookie.HttpOnly = true;
             });
+
+            services.AddSingleton<TaskService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

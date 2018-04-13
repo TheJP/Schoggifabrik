@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Schoggifabrik.Data;
 using Schoggifabrik.Models;
+using Schoggifabrik.Services;
 
 namespace Schoggifabrik.Controllers
 {
@@ -14,7 +15,13 @@ namespace Schoggifabrik.Controllers
     {
         private readonly ILogger logger;
 
-        public HomeController(ILogger<HomeController> logger) => this.logger = logger;
+        public TaskService TaskService { get; }
+
+        public HomeController(ILogger<HomeController> logger, TaskService taskService)
+        {
+            this.logger = logger;
+            TaskService = taskService;
+        }
 
         public IActionResult Index()
         {
@@ -22,8 +29,21 @@ namespace Schoggifabrik.Controllers
         }
 
         [HttpPost]
-        public IActionResult Index([FromForm] string code)
+        public IActionResult Index([FromForm] string code, [FromForm] int taskNumber)
         {
+            var session = HttpContext.GetSessionData();
+            if (session.IsTaskRunning) { return BadRequest(); }
+
+            try
+            {
+                var taskId = TaskService.CreateTask(taskNumber, code);
+            }
+            catch (TooManyTasksException)
+            {
+                logger.LogWarning("Tried to create tasks, but there are already too many tasks running");
+                return StatusCode(503);
+            }
+
             return RedirectToAction(nameof(Index));
         }
 
