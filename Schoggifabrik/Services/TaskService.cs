@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Optional;
 using Schoggifabrik.Data;
 using System;
 using System.Collections.Concurrent;
@@ -16,27 +17,47 @@ namespace Schoggifabrik.Services
         private const int MaxNumberOfTasks = 20;
         private const int MillisecondsCompileDuration = 30 * 1000;
         private const int MillisecondsTestCaseDuration = 30 * 1000;
-        private const int MillisecondsVolumeDeleteDuration = 30 * 1000;
-
-        private const string CompileCommand = "run --rm --network none -v {}:/hs/code.hs:ro -v volume-{}:/hs/output -w /hs haskell:8 bash -c \"ghc code.hs && mv code output/runnable\" > {} 2>&1";
-        private const string RunCommand = "run -i --rm --network none -v volume-{}:/hs:ro -w /hs haskell:8 ./runnable < {} | head --bytes=3M > {} 2> {}";
-        private const string DeleteVolumeCommand = "volume rm volume-{}";
+        private const int MillisecondsVolumeDeleteDuration = 5 * 1000;
 
         private const string CodeFileName = "code.hs";
         private const string CompileLog = "compile.log";
-        private const string OutputFileName = "output.log";
+        private const string RunOutputLog = "output.log";
         private const string RunErrorLog = "error.log";
 
         private readonly ILogger<TaskService> logger;
         private readonly ConcurrentDictionary<string, TaskData> tasks = new ConcurrentDictionary<string, TaskData>();
+        private readonly ConcurrentDictionary<string, TaskData> completedTasks = new ConcurrentDictionary<string, TaskData>();
+
         private readonly DirectoryInfo storageRoot;
+        private readonly string shell;
 
         public TaskService(ILogger<TaskService> logger, IConfiguration configuration)
         {
             this.logger = logger;
 
-            var storageRoot = configuration.GetValue("Docker:StorageRoot", "Data");
+            var storageRoot = configuration.GetValue("Docker:StorageRoot", "TaskData");
             this.storageRoot = Directory.CreateDirectory(storageRoot);
+
+            shell = configuration.GetValue("SCHOGGIFABRIK:SHELL", "bash");
+        }
+
+        private string CompileCommand(string codeFileName, string taskId, string compileLog) =>
+            $"docker run --rm --network none -v \"{codeFileName}\":/hs/code.hs:ro -v volume-{taskId}:/hs/output -w //hs haskell:8 bash -c \"ghc code.hs && mv code output/runnable\" > \"{compileLog}\" 2>&1";
+
+        private string RunCommand(string taskId, string outputLog, string errorLog) =>
+            $"docker run -i --rm --network none -v volume-{taskId}:/hs:ro -w //hs haskell:8 ./runnable > >(head --bytes=3M | tee \"{outputLog}\") 2> >(head --bytes=3M | tee \"{errorLog}\" >&2)";
+
+        private string DeleteVolumeCommand(string taskId) =>
+            $"docker volume rm volume-{taskId}";
+
+        /// <summary>Updates a task in <see cref="tasks"/>. Assumes the task exists in the dictionary!</summary>
+        /// <param name="taskId">Id of the task which should be updated.</param>
+        /// <param name="update">Update function. (Might get called more than once!)</param>
+        /// <returns>New task instance after update.</returns>
+        private TaskData UpdateTask(string taskId, Func<TaskData, TaskData> update)
+        {
+            var task = update(tasks[taskId]);
+            return tasks.AddOrUpdate(taskId, task, (_, oldTask) => update(oldTask));
         }
 
         /// <summary>
@@ -71,20 +92,69 @@ namespace Schoggifabrik.Services
                 var (taskStorage, codeFileName) = CreateFiles(task);
 
                 logger.LogInformation("Start to compile task {}", task.TaskId);
-                var compileLog = Path.Combine(taskStorage.FullName, CompileLog);
-                RunDockerCommand(string.Format(CompileCommand, codeFileName, task.TaskId, compileLog), MillisecondsCompileDuration);
+                task = UpdateTask(task.TaskId, _ => _.SetStateCompiling());
+                var compileSuccess = Compile(task, taskStorage, codeFileName);
+                if (!compileSuccess) { return; }
 
                 logger.LogInformation("Start to run test cases for task {}", task.TaskId);
-                var outputLog = Path.Combine(taskStorage.FullName, OutputFileName);
-                var errorLog = Path.Combine(taskStorage.FullName, RunErrorLog);
-                //RunDockerCommand(string.Format(RunCommand, task.TaskId, inputFileName, outputLog, errorLog));
+                task = UpdateTask(task.TaskId, _ => _.SetStateRunning());
+                for (int i = 0; i < task.Problem.TestCases.Count; ++i)
+                {
+                    bool runSuccess = RunTestCase(task, taskStorage, i);
+                    if (!runSuccess) { return; }
+                }
+
+                task = UpdateTask(task.TaskId, _ => _.SetStateDone(new TaskData.Success()));
             }
             finally
             {
-                logger.LogInformation("Start cleanup for task {}", task.TaskId);
-                RunDockerCommand(string.Format(DeleteVolumeCommand, task.TaskId), MillisecondsVolumeDeleteDuration);
                 // Keeping code files on purpose
+                logger.LogInformation("Start cleanup for task {}", task.TaskId);
+                RunDockerCommand(DeleteVolumeCommand(task.TaskId), MillisecondsVolumeDeleteDuration);
+
+                if (tasks.TryRemove(task.TaskId, out task)) { completedTasks.TryAdd(task.TaskId, task); }
             }
+        }
+
+        private bool Compile(TaskData task, DirectoryInfo taskStorage, string codeFileName)
+        {
+            var compileLog = Path.Combine(taskStorage.FullName, CompileLog);
+            var compileResult = RunDockerCommand(CompileCommand(codeFileName, task.TaskId, compileLog), MillisecondsCompileDuration);
+            compileResult.MatchNone(error =>
+            {
+                var result = error is FailedCommandError commandError ?
+                    new TaskData.CompilationError(commandError.ErrorLog) :
+                    new TaskData.CompilationTimeout() as TaskData.TaskResult;
+                UpdateTask(task.TaskId, _ => _.SetStateDone(result));
+            });
+            return compileResult.HasValue;
+        }
+
+        private bool RunTestCase(TaskData task, DirectoryInfo taskStorage, int i)
+        {
+            var test = task.Problem.TestCases[i];
+            var outputLog = Path.Combine(taskStorage.FullName, i.ToString(), RunOutputLog);
+            var errorLog = Path.Combine(taskStorage.FullName, i.ToString(), RunErrorLog);
+            var runResult = RunDockerCommand(RunCommand(task.TaskId, outputLog, errorLog), MillisecondsTestCaseDuration);
+            var runSuccess = runResult.Match(
+                some =>
+                {
+                    if (!test.TestOutput(some))
+                    {
+                        UpdateTask(task.TaskId, _ => _.SetStateDone(new TaskData.WrongResult()));
+                        return false;
+                    }
+                    else { return true; }
+                },
+                error =>
+                {
+                    var result = error is FailedCommandError commandError ?
+                        new TaskData.RunError(commandError.ErrorLog) :
+                        new TaskData.RunTimeout() as TaskData.TaskResult;
+                    UpdateTask(task.TaskId, _ => _.SetStateDone(result));
+                    return false;
+                });
+            return runSuccess;
         }
 
         /// <summary>
@@ -106,26 +176,55 @@ namespace Schoggifabrik.Services
         /// <summary>
         /// Run the given command for docker.
         /// </summary>
-        /// <param name="command">Docker command without the "docker" prefix.</param>
+        /// <param name="command">Docker command.</param>
         /// <param name="milliseconds">Maximal time that this command is allowed to run.</param>
-        private void RunDockerCommand(string command, int milliseconds)
+        /// <returns>Some(output)</returns>
+        private Option<string, CommandError> RunDockerCommand(string command, int milliseconds)
         {
+            logger.LogDebug("{} -c '{}'", shell, command);
             var process = new Process();
-            process.StartInfo.FileName = "docker";
-            process.StartInfo.Arguments = command;
-            process.StartInfo.UseShellExecute = true;
+            process.StartInfo.FileName = shell;
+            process.StartInfo.Arguments = $"-c '{command}'";
+            process.StartInfo.UseShellExecute = false;
+
+            process.StartInfo.RedirectStandardInput = true;
+            process.StartInfo.RedirectStandardOutput = true;
+            process.StartInfo.RedirectStandardError = true;
 
             process.Start();
+
+            // Error handling
             if (!process.WaitForExit(milliseconds) || process.ExitCode != 0)
             {
-                // Log failed task
-                if (!process.HasExited) { logger.LogWarning("Task exeeded timeout"); }
-                else { logger.LogWarning("Task had non zero exit code {}", process.ExitCode); }
-
-                process.Kill();
-                throw new TaskTimeOutException();
+                CommandError error;
+                if (process.HasExited)
+                {
+                    logger.LogWarning("Task had non zero exit code {}", process.ExitCode);
+                    error = new FailedCommandError(process.StandardError.ReadToEnd());
+                }
+                else
+                {
+                    logger.LogWarning("Task exeeded timeout");
+                    process.Kill();
+                    error = new TimeoutCommandError();
+                }
+                return Option.None<string, CommandError>(error);
+            }
+            // Success Result
+            else
+            {
+                return process.StandardOutput.ReadToEnd()
+                    .Some<string, CommandError>();
             }
         }
+
+        public interface CommandError { }
+        public class FailedCommandError : CommandError
+        {
+            public string ErrorLog { get; }
+            public FailedCommandError(string errorLog) => ErrorLog = errorLog;
+        }
+        public class TimeoutCommandError : CommandError { }
     }
 
     [Serializable]
@@ -135,14 +234,5 @@ namespace Schoggifabrik.Services
         public TooManyTasksException(string message) : base(message) { }
         public TooManyTasksException(string message, Exception innerException) : base(message, innerException) { }
         protected TooManyTasksException(SerializationInfo info, StreamingContext context) : base(info, context) { }
-    }
-
-    [Serializable]
-    internal class TaskTimeOutException : Exception
-    {
-        public TaskTimeOutException() { }
-        public TaskTimeOutException(string message) : base(message) { }
-        public TaskTimeOutException(string message, Exception innerException) : base(message, innerException) { }
-        protected TaskTimeOutException(SerializationInfo info, StreamingContext context) : base(info, context) { }
     }
 }
