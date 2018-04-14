@@ -12,6 +12,9 @@ using System.Threading.Tasks;
 
 namespace Schoggifabrik.Services
 {
+    /// <summary>
+    /// Service that handles the execution of the given tasks.
+    /// </summary>
     public class TaskService
     {
         private const int MaxNumberOfTasks = 20;
@@ -113,9 +116,18 @@ namespace Schoggifabrik.Services
                 RunDockerCommand(DeleteVolumeCommand(task.TaskId), MillisecondsVolumeDeleteDuration);
 
                 if (tasks.TryRemove(task.TaskId, out task)) { completedTasks.TryAdd(task.TaskId, task); }
+                logger.LogInformation("Task {} ended. Result: {}", task.TaskId, task.Result.ToString());
             }
         }
 
+        /// <summary>
+        /// Compile the client code in a docker container.
+        /// Sets the task to Done if an error occurs.
+        /// </summary>
+        /// <param name="task">Task to compile.</param>
+        /// <param name="taskStorage">Folder in which logs and input code are stored for this task.</param>
+        /// <param name="codeFileName">Name of the source code file.</param>
+        /// <returns>true=success, false=failed.</returns>
         private bool Compile(TaskData task, DirectoryInfo taskStorage, string codeFileName)
         {
             var compileLog = Path.Combine(taskStorage.FullName, CompileLog);
@@ -130,12 +142,23 @@ namespace Schoggifabrik.Services
             return compileResult.HasValue;
         }
 
-        private bool RunTestCase(TaskData task, DirectoryInfo taskStorage, int i)
+        /// <summary>
+        /// Run the given test case in a docker container.
+        /// Sets the task to Done if an error occurs.
+        /// </summary>
+        /// <param name="task">Task for which a test case should be executed.</param>
+        /// <param name="taskStorage">Folder in which logs and input code are stored for this task.</param>
+        /// <param name="testCaseIndex">Index of the test case that should be executed.</param>
+        /// <returns>true=success, false=failed.</returns>
+        private bool RunTestCase(TaskData task, DirectoryInfo taskStorage, int testCaseIndex)
         {
-            var test = task.Problem.TestCases[i];
-            var outputLog = Path.Combine(taskStorage.FullName, i.ToString(), RunOutputLog);
-            var errorLog = Path.Combine(taskStorage.FullName, i.ToString(), RunErrorLog);
-            var runResult = RunDockerCommand(RunCommand(task.TaskId, outputLog, errorLog), MillisecondsTestCaseDuration);
+            // Run test case in docker container
+            var test = task.Problem.TestCases[testCaseIndex];
+            var outputLog = Path.Combine(taskStorage.FullName, $"{testCaseIndex}.{RunOutputLog}");
+            var errorLog = Path.Combine(taskStorage.FullName, $"{testCaseIndex}.{RunErrorLog}");
+            var runResult = RunDockerCommand(RunCommand(task.TaskId, outputLog, errorLog), MillisecondsTestCaseDuration, test.Input);
+
+            // Handle result of test run
             var runSuccess = runResult.Match(
                 some =>
                 {
@@ -178,22 +201,31 @@ namespace Schoggifabrik.Services
         /// </summary>
         /// <param name="command">Docker command.</param>
         /// <param name="milliseconds">Maximal time that this command is allowed to run.</param>
-        /// <returns>Some(output)</returns>
-        private Option<string, CommandError> RunDockerCommand(string command, int milliseconds)
+        /// <returns>Some(output) if the run was successful, where output is all that was written to stdout. None(<see cref="CommandError"/>) otherwise.</returns>
+        private Option<string, CommandError> RunDockerCommand(string command, int milliseconds, string input = null)
         {
+            // Setup process
             logger.LogDebug("{} -c '{}'", shell, command);
             var process = new Process();
             process.StartInfo.FileName = shell;
             process.StartInfo.Arguments = $"-c '{command}'";
             process.StartInfo.UseShellExecute = false;
 
+            // Redirect all input and output
             process.StartInfo.RedirectStandardInput = true;
             process.StartInfo.RedirectStandardOutput = true;
             process.StartInfo.RedirectStandardError = true;
 
             process.Start();
 
-            // Error handling
+            // Send given input to created process
+            if (input != null)
+            {
+                process.StandardInput.Write(input);
+                process.StandardInput.Flush();
+            }
+
+            // Handle error cases
             if (!process.WaitForExit(milliseconds) || process.ExitCode != 0)
             {
                 CommandError error;
@@ -210,7 +242,7 @@ namespace Schoggifabrik.Services
                 }
                 return Option.None<string, CommandError>(error);
             }
-            // Success Result
+            // Handle successful runs
             else
             {
                 return process.StandardOutput.ReadToEnd()

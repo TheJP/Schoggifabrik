@@ -30,7 +30,7 @@ namespace Schoggifabrik.Data
         /// <summary>
         /// Result of the task. Only available if <see cref="State"/> is <see cref="TaskState.Done"/>.
         /// </summary>
-        private TaskResult Result { get; }
+        public TaskResult Result { get; }
 
         public TaskData(Problem problem, string code)
         {

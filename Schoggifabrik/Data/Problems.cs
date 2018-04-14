@@ -1,9 +1,16 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Schoggifabrik.Data
 {
     public static class Problems
     {
+        private static bool CompareLax(string expected, string actual) => expected.Trim().Normalize().Equals(
+            actual?.Trim()?.Normalize(), StringComparison.OrdinalIgnoreCase);
+
+        private static Problem.TestCase Match(string input, string expected) =>
+            new Problem.TestCase(input, actual => CompareLax(expected, actual));
+
         public static IList<Problem> AsList { get; } = new Problem[]
         {
             new Problem(
@@ -18,7 +25,9 @@ namespace Schoggifabrik.Data
                     "Dieser muss auf dem Standard-Output ausgegeben werden.",
                 stubCode: "-- Hier den Code einfügen der die Begrüssungsnachricht ausgibt\n"+
                     "-- Der Code muss in Haskell geschrieben werden",
-                testCases: new Problem.TestCase[]{ })
+                testCases: new Problem.TestCase[]{
+                    Match(null, "Herzlich Willkommen!")
+                })
         };
     }
 }
