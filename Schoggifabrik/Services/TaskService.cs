@@ -63,6 +63,9 @@ namespace Schoggifabrik.Services
             return tasks.AddOrUpdate(taskId, task, (_, oldTask) => update(oldTask));
         }
 
+        public bool TryGetRunningTask(string taskId, out TaskData task) => tasks.TryGetValue(taskId, out task);
+        public bool TryGetTask(string taskId, out TaskData task) => completedTasks.TryGetValue(taskId, out task) || tasks.TryGetValue(taskId, out task);
+
         /// <summary>
         /// Creates and runs a task for the given problem number using the given code.
         /// </summary>

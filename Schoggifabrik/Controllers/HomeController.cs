@@ -35,7 +35,11 @@ namespace Schoggifabrik.Controllers
             var problem = Problems.AsList[problemNumber];
 
             var session = HttpContext.GetSessionData();
-            if (session.IsTaskRunning) { return BadRequest(); } // TODO: Check if still running
+            if (session.IsTaskRunning && TaskService.TryGetRunningTask(session.RunningTaskId, out var _))
+            {
+                // There is already a task running for the current user
+                return BadRequest();
+            }
 
             try
             {
