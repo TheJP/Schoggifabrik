@@ -25,18 +25,21 @@ namespace Schoggifabrik.Controllers
 
         public IActionResult Index()
         {
-            return View(Tasks.AsList.First());
+            return View(Problems.AsList.First().ToViewModel());
         }
 
         [HttpPost]
         public IActionResult Index([FromForm] string code, [FromForm] int problemNumber)
         {
+            if (problemNumber < 0 || problemNumber >= Problems.AsList.Count) { return BadRequest(); }
+            var problem = Problems.AsList[problemNumber];
+
             var session = HttpContext.GetSessionData();
-            if (session.IsTaskRunning) { return BadRequest(); }
+            if (session.IsTaskRunning) { return BadRequest(); } // TODO: Check if still running
 
             try
             {
-                var taskId = TaskService.CreateTask(problemNumber, code);
+                var taskId = TaskService.CreateTask(problem, code);
                 session = session.SetRunningTaskId(taskId);
                 HttpContext.SetSessionData(session);
             }

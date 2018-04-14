@@ -1,13 +1,12 @@
-﻿using Schoggifabrik.Models;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace Schoggifabrik.Data
 {
-    public static class Tasks
+    public static class Problems
     {
-        public static IList<TaskViewModel> AsList { get; } = new TaskViewModel[]
+        public static IList<Problem> AsList { get; } = new Problem[]
         {
-            new TaskViewModel(
+            new Problem(
                 flavor: "<p>Wir wissen, dass du noch keine Anstellung an deinem neuen Wohnort gefunden hast. " +
                     "Aber keine Angst: Die <span class=\"highlight\">Schoggifabrik</span> vorort stellt dich, den beinahe schon Schweizer, sehr gerne ein. "+
                     "Da du in deinem Portfolio schreibst es falle dir leicht neue Programmiersprachen zu lernen, " +
@@ -18,7 +17,8 @@ namespace Schoggifabrik.Data
                 output: "Den exakten String <span class=\"highlight\">\"Herzlich Willkommen!\"</span> (ohne Anführungszeichen). " +
                     "Dieser muss auf dem Standard-Output ausgegeben werden.",
                 stubCode: "-- Hier den Code einfügen der die Begrüssungsnachricht ausgibt\n"+
-                    "-- Der Code muss in Haskell geschrieben werden")
+                    "-- Der Code muss in Haskell geschrieben werden",
+                testCases: new Problem.TestCase[]{ })
         };
     }
 }

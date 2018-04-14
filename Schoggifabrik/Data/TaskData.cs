@@ -16,19 +16,19 @@ namespace Schoggifabrik.Data
         public string TaskId { get; }
 
         /// <summary>
-        /// Number of the problem that this task tries to solve.
+        /// Problem that this task tries to solve.
         /// </summary>
-        public int ProblemNumber { get; }
+        public Problem Problem { get; }
 
         /// <summary>
         /// Source code that this task runs on.
         /// </summary>
         public string Code { get; }
 
-        public TaskData(int problemNumber, string code)
+        public TaskData(Problem problem, string code)
         {
             TaskId = Guid.NewGuid().ToString();
-            ProblemNumber = problemNumber;
+            Problem = problem;
             Code = code;
         }
     }
