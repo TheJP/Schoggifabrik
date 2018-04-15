@@ -48,12 +48,15 @@ $(document).ready(() => {
         $.ajax({
             type: $this.attr('method'),
             url: $this.attr('action'),
-            contentType: 'application/json; charset=utf-8',
             dataType: 'json',
             data: $this.serialize(),
             success: data => {
-                console.log(data); // should be js object
                 showSentIcon();
+                refreshResults();
+                const $resultSection = $('#result-section');
+                if ($resultSection.css('display') === 'none') {
+                    $resultSection.stop().animate({ width: 'toggle', height: 'toggle' }, resultTransitionTime);
+                }
             },
             error: (request, error, exception) => {
                 if (error === 'error') {
@@ -66,13 +69,58 @@ $(document).ready(() => {
         });
     });
 
-    $('#show-result').click(() => $('#result-section').stop().animate({ width: 'toggle', height: 'toggle' }, 200));
+    const resultTransitionTime = 200;
+    let refreshingResults = false;
+
+    const displayResults = results => {
+        const resultSection = $('#results');
+        resultSection.children().remove('.result');
+        results.forEach(result => resultSection.append(
+            `<div class="result">
+    <div class="result-status status-${result.status.toLowerCase()}">${result.statusText}</div>
+    <div class="result-name" title="Task">${result.name}</div>
+</div>`
+        ));
+    };
+
+    const resetRefreshResults = () => setTimeout(() => {
+        $('#refresh-result .glyphicon').removeClass('spinning');
+        refreshingResults = false;
+    }, 1000);
+
+    const refreshResults = () => {
+        if (refreshingResults) { return; }
+        refreshingResults = true;
+        $('#refresh-result .glyphicon').addClass('spinning');
+
+        $.ajax({
+            type: 'get',
+            url: '/Home/Results',
+            dataType: 'json',
+            success: data => {
+                resetRefreshResults();
+                displayResults(data);
+                if (data.find(result => result.status.toLowerCase() === 'pending') !== undefined) {
+                    setTimeout(refreshResults, 3000); // Refresh result view after 3s if there are pending results
+                }
+            },
+            error: (request, error, exception) => {
+                console.error(`Unexpected error while polling results: '${error}', '${exception}'`);
+                resetRefreshResults();
+            },
+        });
+    };
+
+    $('#show-result').click(() => {
+        $('#result-section').stop().animate({ width: 'toggle', height: 'toggle' }, resultTransitionTime);
+        refreshResults();
+    });
 
     $('#minimise-result').click(() => {
-        $('#result-section').stop().animate({ width: 0, height: 0 }, 200, function () {
+        $('#result-section').stop().animate({ width: 0, height: 0 }, resultTransitionTime, function () {
             $(this).css('width', '').css('height', '').css('display', 'none');
         });
     });
 
-    $('#refresh-result').click(function () { $(this).children('.glyphicon').toggleClass('spinning'); });
+    $('#refresh-result').click(refreshResults);
 });

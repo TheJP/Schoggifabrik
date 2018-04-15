@@ -60,7 +60,7 @@ body {
 
 #result-section {
     width: 100%;
-    /*display: none;*/
+    display: none;
     position: absolute;
     bottom: 0;
     right: 0;
@@ -83,7 +83,7 @@ body {
 
     /* TODO: improve */
     #result-section {
-        width: 30%;
+        width: 40%;
         height: 300px;
     }
 }
@@ -135,12 +135,23 @@ textarea {
     padding: 5px;
 }
 
+#results {
+    overflow-y: hidden;
+    height: 268px;
+}
+
+#results:hover {
+    overflow-y: auto;
+}
+
 .result {
+    border-bottom: 1px solid #333;
     border-bottom: 1px solid rgba(60, 60, 60, 0.5);
     padding: 5px 10px;
 }
 
 .result:hover {
+    background-color: #333;
     background-color: rgba(60, 60, 60, 0.5);
 }
 
@@ -152,6 +163,14 @@ textarea {
 
 .status-pending {
     background-color: rebeccapurple;
+}
+
+.status-success {
+    background-color: #168900;
+}
+
+.status-error {
+    background-color: #c63d3d;
 }
 
 .result-name {

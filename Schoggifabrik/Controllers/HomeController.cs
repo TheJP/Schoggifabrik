@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using Schoggifabrik.Data;
 using Schoggifabrik.Models;
 using Schoggifabrik.Services;
@@ -54,6 +55,17 @@ namespace Schoggifabrik.Controllers
                 logger.LogWarning("Tried to create tasks, but there are already too many tasks running");
                 return StatusCode(503, new { Error = "Der Server bewertet gerade schon zu viele Einsendungen. Bitte versuche es später nochmals." });
             }
+        }
+
+        [HttpGet]
+        public JsonResult Results()
+        {
+            var session = HttpContext.GetSessionData();
+            var tasks = session.TaskIds.Reverse()
+                .Select(taskId => TaskService.TryGetTask(taskId, out var task) ? task : null)
+                .Where(task => task != null)
+                .Select(Converter.ToViewModel);
+            return Json(tasks);
         }
 
         public IActionResult Error()
