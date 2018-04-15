@@ -5,14 +5,16 @@ namespace Schoggifabrik.Data
 {
     public class Problem
     {
+        public string Name { get; }
         public string Flavor { get; }
         public string Input { get; }
         public string Output { get; }
         public string StubCode { get; }
         public IList<TestCase> TestCases { get; }
 
-        public Problem(string flavor, string input, string output, string stubCode, IList<TestCase> testCases)
+        public Problem(string name, string flavor, string input, string output, string stubCode, IList<TestCase> testCases)
         {
+            Name = name;
             Flavor = flavor;
             Input = input;
             Output = output;

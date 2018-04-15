@@ -1,4 +1,5 @@
 ﻿@model Schoggifabrik.Models.ProblemViewModel
+@{ ViewBag.Title = Model.Name; }
 
 <section>
     <h2>Flavor</h2>
@@ -19,7 +20,7 @@
 
 <section id="code-section">
     <h2>Code</h2>
-    <form asp-area="" asp-controller="Home" asp-action="Index" method="post">
+    <form id="code-form" asp-area="" asp-controller="Home" asp-action="SubmitCode" method="post">
         <textarea id="code" name="code">@Html.Raw(Model.StubCode)@*
 main = do
     (a:b:vs) &lt;- (fmap words getContents)
@@ -30,6 +31,15 @@ main = do
 readInt :: String -> Int
 readInt = read
         *@</textarea>
-        <button type="submit"><span class="glyphicon glyphicon-send"></span> Send Submission</button>
+        <button id="code-submit" type="submit" class="button">
+            <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+                <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none" />
+                <path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8" />
+            </svg>
+            <span class="glyphicon glyphicon-send"></span>
+            <span class="glyphicon glyphicon-refresh spinning"></span>
+            Submit Code
+        </button>
+        <span id="code-submit-status"></span>
     </form>
 </section>

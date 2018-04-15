@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Schoggifabrik</title>
+    <title>Schoggifabrik @ViewData["Title"]</title>
 
     <environment include="Development">
         <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />
@@ -23,11 +23,24 @@
 <body>
     <div class="top-banner container"></div>
     <div class="container body-content">
-        <h1>Schoggifabrik &gt;</h1>
+        <h1>Schoggifabrik &gt; <span class="pull-right">@ViewData["Title"]</span></h1>
         @RenderBody()
+
+        <section id="result-section">
+            <div id="result-header">
+                <button id="refresh-result"><span class="glyphicon glyphicon-refresh"></span></button>
+                <button id="minimise-result"><span class="glyphicon glyphicon-minus"></span></button>
+            </div>
+            <div class="clearfix"></div>
+            <div class="result">
+                <div class="result-status status-pending">Pending</div>
+                <div class="result-name" title="Task">Start</div>
+            </div>
+        </section>
     </div>
     <footer class="container">
-        <p>&copy; 2018 - Schoggifabrik</p>
+        &copy; 2018 - Schoggifabrik by JP
+        <button id="show-result" class="pull-right">Show Results</button>
     </footer>
 
     <script src="~/lib/codemirror/dist/js/codemirror.js"></script>

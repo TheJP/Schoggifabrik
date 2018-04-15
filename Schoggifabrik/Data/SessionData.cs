@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 
 namespace Schoggifabrik.Data
 {
@@ -8,11 +9,14 @@ namespace Schoggifabrik.Data
     public class SessionData
     {
         public string RunningTaskId { get; }
+
+        [JsonIgnore]
         public bool IsTaskRunning => !string.IsNullOrEmpty(RunningTaskId);
 
         public SessionData() => RunningTaskId = null;
 
-        private SessionData(string runningTaskId) => RunningTaskId = runningTaskId;
+        [JsonConstructor]
+        public SessionData(string runningTaskId) => RunningTaskId = runningTaskId;
 
         public SessionData SetRunningTaskId(string runningTaskId)
         {

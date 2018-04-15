@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Schoggifabrik.Data;
@@ -29,16 +30,16 @@ namespace Schoggifabrik.Controllers
         }
 
         [HttpPost]
-        public IActionResult Index([FromForm] string code, [FromForm] int problemNumber)
+        public IActionResult SubmitCode([FromForm] string code, [FromRoute] int id)
         {
-            if (problemNumber < 0 || problemNumber >= Problems.AsList.Count) { return BadRequest(); }
-            var problem = Problems.AsList[problemNumber];
+            if (id < 0 || id >= Problems.AsList.Count) { return BadRequest(); }
+            var problem = Problems.AsList[id];
 
             var session = HttpContext.GetSessionData();
             if (session.IsTaskRunning && TaskService.TryGetRunningTask(session.RunningTaskId, out var _))
             {
                 // There is already a task running for the current user
-                return BadRequest();
+                return BadRequest(new { Error = "Bitte warte mit dem Senden von neuem Code. Deine letzte Einsendung wird noch bewertet." });
             }
 
             try
@@ -46,14 +47,13 @@ namespace Schoggifabrik.Controllers
                 var taskId = TaskService.CreateTask(problem, code);
                 session = session.SetRunningTaskId(taskId);
                 HttpContext.SetSessionData(session);
+                return Json(new { Status = "Task started" });
             }
             catch (TooManyTasksException)
             {
                 logger.LogWarning("Tried to create tasks, but there are already too many tasks running");
-                return StatusCode(503);
+                return StatusCode(503, new { Error = "Der Server bewertet gerade schon zu viele Einsendungen. Bitte versuche es später nochmals." });
             }
-
-            return RedirectToAction(nameof(Index));
         }
 
         public IActionResult Error()
