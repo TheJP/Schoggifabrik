@@ -11,6 +11,8 @@ namespace Schoggifabrik.Data
         private static Problem.TestCase Match(string input, string expected) =>
             new Problem.TestCase(input, actual => CompareLax(expected, actual));
 
+        public static int Count => AsList.Count;
+
         public static IList<Problem> AsList { get; } = new Problem[]
         {
             new Problem(

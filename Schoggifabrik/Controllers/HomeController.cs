@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using Schoggifabrik.Data;
 using Schoggifabrik.Models;
 using Schoggifabrik.Services;
@@ -25,19 +21,42 @@ namespace Schoggifabrik.Controllers
             TaskService = taskService;
         }
 
-        public IActionResult Index()
+        /// <summary>Update the session state according to task results.</summary>
+        private SessionData UpdateSession(SessionData session)
         {
-            return View(Problems.AsList.First().ToViewModel());
+            if (session.IsTaskRunning && !TaskService.TryGetRunningTask(session.RunningTaskId, out var _))
+            {
+                if(TaskService.TryGetTask(session.RunningTaskId, out var finishedTask) && finishedTask.Result is TaskData.Success)
+                {
+                    session = session.AdvanceToNextProblem();
+                }
+                session = session.RemoveRunningTaskId();
+            }
+            return session;
+        }
+
+        public IActionResult Index([FromRoute] int? id)
+        {
+            var session = UpdateSession(HttpContext.GetSessionData());
+            if (!id.HasValue || id < 0 || id >= Problems.Count || id > session.CurrentProblemId)
+            {
+                return RedirectToAction(nameof(Index), new { Id = session.CurrentProblemId });
+            }
+
+            return View(Problems.AsList[id.Value].ToViewModel());
         }
 
         [HttpPost]
         public IActionResult SubmitCode([FromForm] string code, [FromRoute] int id)
         {
-            if (id < 0 || id >= Problems.AsList.Count) { return BadRequest(); }
-            var problem = Problems.AsList[id];
+            var session = UpdateSession(HttpContext.GetSessionData());
+            if (id < 0 || id >= Problems.Count || id > session.CurrentProblemId)
+            {
+                return BadRequest(new { Error = $"Üngültige Problemnummer: '{id}'" });
+            }
 
-            var session = HttpContext.GetSessionData();
-            if (session.IsTaskRunning && TaskService.TryGetRunningTask(session.RunningTaskId, out var _))
+            var problem = Problems.AsList[id];
+            if (session.IsTaskRunning)
             {
                 // There is already a task running for the current user
                 return BadRequest(new { Error = "Bitte warte mit dem Senden von neuem Code. Deine letzte Einsendung wird noch bewertet." });
