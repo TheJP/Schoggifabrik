@@ -15,43 +15,63 @@
 })();
 
 $(document).ready(() => {
+    const resultTransitionTime = 200;
+
     let timer = 0;
+    let sentCodeSubmission = false;
+    let refreshingResults = false;
 
     const hideAllIcons = () => ['.checkmark', '.glyphicon-send', '.glyphicon-refresh']
         .forEach(icon => $(`#code-submit ${icon}`).css('display', 'none'));
 
+    const clearIconTimeout = () => {
+        if (timer != 0) {
+            clearTimeout(timer);
+            timer = 0;
+        }
+    };
+
     const showDefaultIcon = () => {
-        clearTimeout(timer);
+        clearIconTimeout();
         hideAllIcons();
         $('#code-submit .glyphicon-send').css('display', 'inline-block');
     };
 
-    const showSendingIcon = () => {
-        clearTimeout(timer);
+    const showLoadingIcon = () => {
+        clearIconTimeout();
         hideAllIcons();
         $('#code-submit .glyphicon-refresh').css('display', 'inline-block');
     };
 
-    const showSentIcon = () => {
-        clearTimeout(timer);
+    const showDoneIcon = () => {
+        clearIconTimeout();
         hideAllIcons();
         $('#code-submit .checkmark').css('display', 'inline-block');
-        timer = setTimeout(() => showDefaultIcon(), 2000);
+        timer = setTimeout(() => { timer = 0; showDefaultIcon(); }, 5000);
+    };
+
+    const resetSendCodeStatus = () => {
+        sentCodeSubmission = false;
+        $('#code-submit').prop('disabled', false);
+        showDoneIcon();
     };
 
     $('#code-form').submit(function (e) {
         e.preventDefault();
 
-        showSendingIcon();
+        if (sentCodeSubmission) { return; }
+        sentCodeSubmission = true;
+        $('#code-submit').prop('disabled', true);
+
+        showLoadingIcon();
 
         const $this = $(this);
         $.ajax({
-            type: $this.attr('method'),
-            url: $this.attr('action'),
+            type: $this.prop('method'),
+            url: $this.prop('action'),
             dataType: 'json',
             data: $this.serialize(),
             success: data => {
-                showSentIcon();
                 refreshResults();
                 const $resultSection = $('#result-section');
                 if ($resultSection.css('display') === 'none') {
@@ -63,20 +83,19 @@ $(document).ready(() => {
                     alert(`Konnte Code nicht senden: ${request.responseJSON.error}`);
                 } else {
                     alert(`Unerwarteter Fehler beim Senden: '${error}', '${exception}'`);
+                    console.error('Unepxpected error while sending code', request, error, exception);
                 }
+                resetSendCodeStatus();
                 showDefaultIcon();
             },
         });
     });
 
-    const resultTransitionTime = 200;
-    let refreshingResults = false;
-
     const displayResults = results => {
         const resultSection = $('#results');
         resultSection.children().remove('.result');
         results.forEach(result => resultSection.append(
-            `<div class="result">
+`<div class="result">
     <div class="result-status status-${result.status.toLowerCase()}">${result.statusText}</div>
     <div class="result-name" title="Task">${result.name}</div>
 </div>`
@@ -84,8 +103,8 @@ $(document).ready(() => {
     };
 
     const resetRefreshResults = () => setTimeout(() => {
-        $('#refresh-result .glyphicon').removeClass('spinning');
         refreshingResults = false;
+        $('#refresh-result .glyphicon').removeClass('spinning');
     }, 1000);
 
     const refreshResults = () => {
@@ -102,6 +121,8 @@ $(document).ready(() => {
                 displayResults(data);
                 if (data.find(result => result.status.toLowerCase() === 'pending') !== undefined) {
                     setTimeout(refreshResults, 3000); // Refresh result view after 3s if there are pending results
+                } else {
+                    resetSendCodeStatus();
                 }
             },
             error: (request, error, exception) => {
