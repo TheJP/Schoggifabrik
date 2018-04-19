@@ -40,8 +40,9 @@ namespace Schoggifabrik.Data
                     "<p>Die Begrüssung im Visitor Centre sieht zwar toll aus, ist aber unpersönlich und immer gleich. " +
                     "Erweitere dein Haskell Programm um Gäste mit ihrem Namen anzusprechen.",
                 input: "Die 1. Inputzeile enthält jeweils den Namen mit welchem der Gast begrüsst werden soll.</p>" +
-                    "Beispiele: <code>Paul</code> oder <code>Herr Gummi</code>",
-                output: "Den String <span class=\"highlight\">\"Willkommen NAME!\"</span>, wobei NAME durch den Namen zu ersetzen ist.",
+                    "<p>Beispiele: <code>Paul</code> oder <code>Herr Gummi</code>",
+                output: "Den String <span class=\"highlight\">\"Willkommen NAME!\"</span>, wobei NAME durch den Namen zu ersetzen ist.</p>" +
+                    "<p>Beispiel Output: <code>Willkommen Paul!</code> oder <code>Willkommen Herr Gummi!</code>",
                 stubCode: "main = putStrLn \"Herzlich Willkommen!\"",
                 testCases: new Problem.TestCase[] {
                     Match("Paul", "Willkommen Paul!"),

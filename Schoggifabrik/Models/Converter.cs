@@ -8,7 +8,7 @@ namespace Schoggifabrik.Models
     {
         public static ProblemViewModel ToViewModel(this Problem problem) => new ProblemViewModel(problem.Name, problem.Flavor, problem.Input, problem.Output, problem.StubCode);
 
-        public static TaskViewModel ToViewModel(this TaskData task) => new TaskViewModel(task.Problem.Name, TaskStatusText(task), TaskStatus(task));
+        public static TaskViewModel ToViewModel(this TaskData task) => new TaskViewModel(task.TaskId, task.Problem.Name, TaskStatusText(task), TaskStatus(task));
 
         private static string TaskStatusText(TaskData task)
         {

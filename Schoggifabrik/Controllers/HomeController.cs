@@ -67,7 +67,7 @@ namespace Schoggifabrik.Controllers
                 var taskId = TaskService.CreateTask(problem, code);
                 session = session.SetRunningTaskId(taskId);
                 HttpContext.SetSessionData(session);
-                return Json(new { Status = "Task started" });
+                return Json(new { Status = "Task started", Id = taskId });
             }
             catch (TooManyTasksException)
             {

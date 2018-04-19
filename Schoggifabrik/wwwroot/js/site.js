@@ -19,13 +19,14 @@ $(document).ready(() => {
 
     let timer = 0;
     let sentCodeSubmission = false;
+    let waitingForTaskId = null;
     let refreshingResults = false;
 
     const hideAllIcons = () => ['.checkmark', '.glyphicon-send', '.glyphicon-refresh']
         .forEach(icon => $(`#code-submit ${icon}`).css('display', 'none'));
 
     const clearIconTimeout = () => {
-        if (timer != 0) {
+        if (timer !== 0) {
             clearTimeout(timer);
             timer = 0;
         }
@@ -52,6 +53,7 @@ $(document).ready(() => {
 
     const resetSendCodeStatus = () => {
         sentCodeSubmission = false;
+        waitingForTaskId = null;
         $('#code-submit').prop('disabled', false);
         showDoneIcon();
     };
@@ -72,6 +74,7 @@ $(document).ready(() => {
             dataType: 'json',
             data: $this.serialize(),
             success: data => {
+                waitingForTaskId = data.id;
                 refreshResults();
                 const $resultSection = $('#result-section');
                 if ($resultSection.css('display') === 'none') {
@@ -107,6 +110,18 @@ $(document).ready(() => {
         $('#refresh-result .glyphicon').removeClass('spinning');
     }, 1000);
 
+    const handleResults = results => {
+        const result = waitingForTaskId === null ? undefined : results.find(result => result.id === waitingForTaskId);
+        if (result !== undefined && result.status.toLowerCase() === 'pending') {
+            setTimeout(refreshResults, 3000); // Refresh result view after 3s if there are pending results
+        } else {
+            resetSendCodeStatus();
+        }
+        if (result !== undefined && result.status.toLowerCase() === 'success') {
+            $('#next-problem-link').fadeIn().css('display', 'inline-block');
+        }
+    };
+
     const refreshResults = () => {
         if (refreshingResults) { return; }
         refreshingResults = true;
@@ -119,11 +134,7 @@ $(document).ready(() => {
             success: data => {
                 resetRefreshResults();
                 displayResults(data);
-                if (data.find(result => result.status.toLowerCase() === 'pending') !== undefined) {
-                    setTimeout(refreshResults, 3000); // Refresh result view after 3s if there are pending results
-                } else {
-                    resetSendCodeStatus();
-                }
+                handleResults(data);
             },
             error: (request, error, exception) => {
                 console.error(`Unexpected error while polling results: '${error}', '${exception}'`);

@@ -11,23 +11,23 @@ body {
 
 .button {
     margin-top: 10px;
+    color: white;
     background-color: #168900;
     padding: 5px 10px;
-    border-top: none;
-    border-left: none;
-    border-right: 1px solid #263238;
-    border-bottom: 1px solid #263238;
+    border: none;
+    display: inline-block;
 }
 
-.button:hover:not([disabled]) {
+.button:hover:not([disabled]), .button:focus:not([disabled]) {
+    color: white;
     background-color: #1baa00;
+    text-decoration: none;
 }
 
 .button:active:not([disabled]) {
-    border-top: 1px solid #263238;
-    border-left: 1px solid #263238;
-    border-right: none;
-    border-bottom: none;
+    color: white;
+    text-decoration: none;
+    transform: translate(1px, 1px);
 }
 
 .button:disabled {
@@ -114,8 +114,11 @@ textarea {
     display: none;
 }
 
-/* Result Section */
+#next-problem-link {
+    display: none;
+}
 
+/* Result Section */
 #result-section {
     cursor: default;
     background-color: rgb(25, 32, 35); /* fallback */
@@ -193,6 +196,7 @@ footer button:hover {
 }
 
 /* Checkmark visual and animation */
+
 .checkmark__circle {
     stroke-dasharray: 166;
     stroke-dashoffset: 166;
