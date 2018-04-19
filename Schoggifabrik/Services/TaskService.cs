@@ -20,7 +20,7 @@ namespace Schoggifabrik.Services
         private const int MaxNumberOfTasks = 20;
         private const int MillisecondsCompileDuration = 30 * 1000;
         private const int MillisecondsTestCaseDuration = 30 * 1000;
-        private const int MillisecondsVolumeDeleteDuration = 5 * 1000;
+        private const int MillisecondsCleanupDuration = 30 * 1000;
 
         private const string CodeFileName = "code.hs";
         private const string CompileLog = "compile.log";
@@ -45,15 +45,18 @@ namespace Schoggifabrik.Services
         }
 
         private string CompileCommand(string codeFileName, string taskId, string compileLog) =>
-            $"docker run --rm --network none -v \"{codeFileName}\":/hs/code.hs:ro -v volume-{taskId}:/hs/output -w //hs haskell:8 " +
+            $"docker run --rm --network none --name compile-{taskId} -v \"{codeFileName}\":/hs/code.hs:ro -v volume-{taskId}:/hs/output -w //hs haskell:8 " +
             $"bash -c \"ghc code.hs && mv code output/runnable\" > \"{compileLog}\" 2>&1";
 
         private string RunCommand(string taskId, string outputLog, string errorLog) =>
-            $"docker run -i --rm --network none -v volume-{taskId}:/hs:ro -w //hs haskell:8 " +
+            $"docker run -i --rm --network none --name run-{taskId} -v volume-{taskId}:/hs:ro -w //hs haskell:8 " +
             $"./runnable > >(head --bytes=3M | tee \"{outputLog}\") 2> >(head --bytes=3M | tee \"{errorLog}\" >&2)";
 
-        private string DeleteVolumeCommand(string taskId) =>
-            $"docker volume rm volume-{taskId}";
+        private string StopCompileCommand(string taskId) => $"docker container stop compile-{taskId}";
+
+        private string StopRunCommand(string taskId) => $"docker container stop run-{taskId}";
+
+        private string DeleteVolumeCommand(string taskId) => $"docker volume rm volume-{taskId}";
 
         /// <summary>Updates a task in <see cref="tasks"/>. Assumes the task exists in the dictionary!</summary>
         /// <param name="taskId">Id of the task which should be updated.</param>
@@ -116,10 +119,13 @@ namespace Schoggifabrik.Services
             }
             finally
             {
-                // TODO: Stop named docker containers compile-{id} and run-{id}
-                // Keeping code files on purpose
                 logger.LogInformation("Start cleanup for task {}", task.TaskId);
-                RunDockerCommand(DeleteVolumeCommand(task.TaskId), MillisecondsVolumeDeleteDuration);
+                // Keeping code files on purpose
+
+                // Remove docker containers and volume
+                RunDockerCommand(StopCompileCommand(task.TaskId), MillisecondsCleanupDuration);
+                RunDockerCommand(StopRunCommand(task.TaskId), MillisecondsCleanupDuration);
+                RunDockerCommand(DeleteVolumeCommand(task.TaskId), MillisecondsCleanupDuration);
 
                 if (tasks.TryRemove(task.TaskId, out task)) { completedTasks.TryAdd(task.TaskId, task); }
                 logger.LogInformation("Task {} ended. Result: {}", task.TaskId, task.Result.ToString());
