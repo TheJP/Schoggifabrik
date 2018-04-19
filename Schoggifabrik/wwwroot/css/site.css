@@ -35,6 +35,12 @@ body, a, a:hover, a:focus {
     color: #aaa;
 }
 
+input {
+    padding: 5px 10px;
+    color: black;
+    border: none;
+}
+
 .highlight {
     color: #168900;
     font-weight: bold;

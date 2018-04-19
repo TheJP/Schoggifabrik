@@ -54,6 +54,6 @@ namespace Schoggifabrik.Data
         public SessionData RemoveRunningTaskId() => new SessionData(null, TaskIds, CurrentProblemId);
 
         public SessionData AdvanceToNextProblem() =>
-            new SessionData(RunningTaskId, TaskIds, Math.Min(CurrentProblemId + 1, Problems.Count - 1));
+            new SessionData(RunningTaskId, TaskIds, Math.Min(CurrentProblemId + 1, Problems.Count));
     }
 }

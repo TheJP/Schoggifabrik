@@ -2,11 +2,12 @@
 @{ ViewBag.Title = "Problem Liste"; }
 
 <section id="problem-list-section">
-    <h2>Gelöste Probleme</h2>
+    <h2>Probleme</h2>
     @for (int id = 0; id < Model.Count - 1; ++id)
     {
         <p><a class="solved-problem" asp-action="Index" asp-route-id="@id">@Model[id].Name</a></p>
     }
-    <h2>Momentanes Problem</h2>
-    <p><a asp-action="Index">@Model.Last().Name</a></p>
+    <p><a asp-action="Index" asp-route-id="@(Model.Count - 1)">@Model.Last().Name</a></p>
+    <hr />
+    <p><a asp-action="Index">Momentanes Problem</a></p>
 </section>

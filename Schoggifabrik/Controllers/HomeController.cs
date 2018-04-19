@@ -38,6 +38,12 @@ namespace Schoggifabrik.Controllers
         public IActionResult Index([FromRoute] int? id)
         {
             var session = UpdateSession(HttpContext.GetSessionData());
+
+            if(session.CurrentProblemId >= Problems.Count && (!id.HasValue || id == session.CurrentProblemId))
+            {
+                return RedirectToAction(nameof(Success), new { });
+            }
+
             if (!id.HasValue || id < 0 || id >= Problems.Count || id > session.CurrentProblemId)
             {
                 return RedirectToAction(nameof(Index), new { Id = session.CurrentProblemId });
@@ -95,6 +101,17 @@ namespace Schoggifabrik.Controllers
                 .Take(session.CurrentProblemId + 1)
                 .Select(Converter.ToViewModel).ToList();
             return View(availableProblems);
+        }
+
+        public IActionResult Success()
+        {
+            var session = UpdateSession(HttpContext.GetSessionData());
+            HttpContext.SetSessionData(session);
+            if (session.CurrentProblemId < Problems.Count)
+            {
+                return RedirectToAction(nameof(Index));
+            }
+            return View();
         }
 
         public IActionResult Error()
