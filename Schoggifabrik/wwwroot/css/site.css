@@ -4,7 +4,7 @@ h1, h2, h3, h4, h5 {
     font-family: 'Prompt', sans-serif;
 }
 
-body {
+body, a, a:hover, a:focus {
     font-family: 'Work Sans', sans-serif;
     color: white;
 }
@@ -208,13 +208,6 @@ footer button:hover {
 }
 
 #problem-list-section a {
-    color: white;
-    font-size: 16pt;
-}
-
-#problem-list-section a:hover {
-    color: white;
-    text-decoration: underline;
     font-size: 16pt;
 }
 

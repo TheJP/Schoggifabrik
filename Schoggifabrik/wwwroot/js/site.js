@@ -65,7 +65,6 @@ $(document).ready(() => {
         sentCodeSubmission = false;
         waitingForTaskId = null;
         $('#code-submit').prop('disabled', false);
-        showDoneIcon();
     };
 
     $('#code-form').submit(function (e) {
@@ -127,6 +126,9 @@ $(document).ready(() => {
             setTimeout(refreshResults, 3000); // Refresh result view after 3s if there are pending results
         } else {
             resetSendCodeStatus();
+            if (result !== undefined) {
+                showDoneIcon();
+            }
         }
         if (result !== undefined && result.status.toLowerCase() === 'success') {
             $('#next-problem-link').fadeIn().css('display', 'inline-block');
