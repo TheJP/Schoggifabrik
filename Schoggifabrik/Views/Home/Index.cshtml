@@ -2,7 +2,7 @@
 @{ ViewBag.Title = Model.Name; }
 
 <section>
-    <h2>Flavor</h2>
+    <h2>Aufgabe</h2>
     <p>@Html.Raw(Model.Flavor)</p>
 </section>
 
@@ -20,7 +20,7 @@
 
 <section id="code-section">
     <h2>Code</h2>
-    <form id="code-form" asp-area="" asp-controller="Home" asp-action="SubmitCode" method="post">
+    <form id="code-form" asp-area="" asp-controller="Home" asp-action="SubmitCode" asp-route-id="@ViewContext.RouteData.Values["id"]" method="post">
         <textarea id="code" name="code">@Html.Raw(Model.StubCode)@*
 main = do
     (a:b:vs) &lt;- (fmap words getContents)

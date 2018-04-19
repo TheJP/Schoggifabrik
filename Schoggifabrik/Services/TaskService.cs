@@ -45,10 +45,12 @@ namespace Schoggifabrik.Services
         }
 
         private string CompileCommand(string codeFileName, string taskId, string compileLog) =>
-            $"docker run --rm --network none -v \"{codeFileName}\":/hs/code.hs:ro -v volume-{taskId}:/hs/output -w //hs haskell:8 bash -c \"ghc code.hs && mv code output/runnable\" > \"{compileLog}\" 2>&1";
+            $"docker run --rm --network none -v \"{codeFileName}\":/hs/code.hs:ro -v volume-{taskId}:/hs/output -w //hs haskell:8 " +
+            $"bash -c \"ghc code.hs && mv code output/runnable\" > \"{compileLog}\" 2>&1";
 
         private string RunCommand(string taskId, string outputLog, string errorLog) =>
-            $"docker run -i --rm --network none -v volume-{taskId}:/hs:ro -w //hs haskell:8 ./runnable > >(head --bytes=3M | tee \"{outputLog}\") 2> >(head --bytes=3M | tee \"{errorLog}\" >&2)";
+            $"docker run -i --rm --network none -v volume-{taskId}:/hs:ro -w //hs haskell:8 " +
+            $"./runnable > >(head --bytes=3M | tee \"{outputLog}\") 2> >(head --bytes=3M | tee \"{errorLog}\" >&2)";
 
         private string DeleteVolumeCommand(string taskId) =>
             $"docker volume rm volume-{taskId}";
@@ -114,6 +116,7 @@ namespace Schoggifabrik.Services
             }
             finally
             {
+                // TODO: Stop named docker containers compile-{id} and run-{id}
                 // Keeping code files on purpose
                 logger.LogInformation("Start cleanup for task {}", task.TaskId);
                 RunDockerCommand(DeleteVolumeCommand(task.TaskId), MillisecondsVolumeDeleteDuration);
@@ -121,6 +124,29 @@ namespace Schoggifabrik.Services
                 if (tasks.TryRemove(task.TaskId, out task)) { completedTasks.TryAdd(task.TaskId, task); }
                 logger.LogInformation("Task {} ended. Result: {}", task.TaskId, task.Result.ToString());
             }
+        }
+
+        /// <summary>
+        /// Creates the task folder, task code file and input files.
+        /// </summary>
+        /// <param name="task">Task information.</param>
+        /// <returns>Task folder and code file name information.</returns>
+        private (DirectoryInfo taskStorage, string codeFileName) CreateFiles(TaskData task)
+        {
+            var taskStorage = storageRoot.CreateSubdirectory(task.TaskId);
+            var codeFileName = CreateFile(taskStorage, CodeFileName, task.Code);
+            return (taskStorage, codeFileName);
+        }
+
+        /// <summary>Creates the file with the given fileName and the given content in the given directory.</summary>
+        private string CreateFile(DirectoryInfo targetDirectory, string fileName, string content)
+        {
+            var fullFileName = Path.Combine(targetDirectory.FullName, fileName);
+            using (var writer = new StreamWriter(fullFileName, false, Encoding.UTF8))
+            {
+                writer.Write(content);
+            }
+            return fullFileName;
         }
 
         /// <summary>
@@ -184,22 +210,6 @@ namespace Schoggifabrik.Services
         }
 
         /// <summary>
-        /// Creates the task folder and task code file.
-        /// </summary>
-        /// <param name="task">Task information.</param>
-        /// <returns>Task folder and code file name information.</returns>
-        private (DirectoryInfo taskStorage, string codeFileName) CreateFiles(TaskData task)
-        {
-            var taskStorage = storageRoot.CreateSubdirectory(task.TaskId);
-            var codeFileName = Path.Combine(taskStorage.FullName, CodeFileName);
-            using (var writer = new StreamWriter(codeFileName, false, Encoding.UTF8))
-            {
-                writer.Write(task.Code);
-            }
-            return (taskStorage, codeFileName);
-        }
-
-        /// <summary>
         /// Run the given command for docker.
         /// </summary>
         /// <param name="command">Docker command.</param>
@@ -226,6 +236,7 @@ namespace Schoggifabrik.Services
             {
                 process.StandardInput.Write(input);
                 process.StandardInput.Flush();
+                process.StandardInput.Close();
             }
 
             // Handle error cases

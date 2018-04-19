@@ -28,8 +28,25 @@ namespace Schoggifabrik.Data
                     "Dieser muss auf dem Standard-Output ausgegeben werden.",
                 stubCode: "-- Hier den Code einfügen der die Begrüssungsnachricht ausgibt\n"+
                     "-- Der Code muss in Haskell geschrieben werden",
-                testCases: new Problem.TestCase[]{
+                testCases: new Problem.TestCase[] {
                     Match(null, "Herzlich Willkommen!")
+                }),
+
+            new Problem(
+                name: "Start 2",
+                flavor: "Gut gemacht. Dein Vorgesetzter Gummi freut sich über die neue Willkommensnachricht. " +
+                    "Er gibt allerdings zu, dass diese einfache Aufgabe nur ein kleiner Test war um zu prüfen, " +
+                    "ob du gewappnet für das Berufsleben als Schoggifabriksoftwareentwickler bist.</p>" +
+                    "<p>Die Begrüssung im Visitor Centre sieht zwar toll aus, ist aber unpersönlich und immer gleich. " +
+                    "Erweitere dein Haskell Programm um Gäste mit ihrem Namen anzusprechen.",
+                input: "Die 1. Inputzeile enthält jeweils den Namen mit welchem der Gast begrüsst werden soll.</p>" +
+                    "Beispiele: <code>Paul</code> oder <code>Herr Gummi</code>",
+                output: "Den String <span class=\"highlight\">\"Willkommen NAME!\"</span>, wobei NAME durch den Namen zu ersetzen ist.",
+                stubCode: "main = putStrLn \"Herzlich Willkommen!\"",
+                testCases: new Problem.TestCase[] {
+                    Match("Paul", "Willkommen Paul!"),
+                    Match("Herr Gummi", "Willkommen Herr Gummi!"),
+                    Match("Mr.  Sonderzeichen !&-*#@", "Willkommen Mr.  Sonderzeichen !&-*#@!"),
                 }),
         };
     }
