@@ -86,7 +86,6 @@ body {
         width: 50%;
     }
 
-    /* TODO: improve */
     #result-section {
         width: 500px;
         height: 300px;
@@ -119,6 +118,7 @@ textarea {
 }
 
 /* Result Section */
+
 #result-section {
     cursor: default;
     background-color: rgb(25, 32, 35); /* fallback */
@@ -193,6 +193,12 @@ footer button {
 
 footer button:hover {
     text-decoration: underline;
+}
+
+.application-info {
+    display: inline-block;
+    width: 50%;
+    overflow: hidden;
 }
 
 /* Checkmark visual and animation */
