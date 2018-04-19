@@ -87,6 +87,16 @@ namespace Schoggifabrik.Controllers
             return Json(tasks);
         }
 
+        public IActionResult ProblemList()
+        {
+            var session = UpdateSession(HttpContext.GetSessionData());
+            HttpContext.SetSessionData(session);
+            var availableProblems = Problems.AsList
+                .Take(session.CurrentProblemId + 1)
+                .Select(Converter.ToViewModel).ToList();
+            return View(availableProblems);
+        }
+
         public IActionResult Error()
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });

@@ -3,6 +3,7 @@
 // Setup code editor
 (() => {
     const textarea = document.getElementById('code');
+    if (!textarea) { return; }
     textarea.value = textarea.value.trim() + '\n';
     const editor = CodeMirror.fromTextArea(textarea, {
         lineNumbers: true,

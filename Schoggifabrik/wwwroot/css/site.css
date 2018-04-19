@@ -201,6 +201,28 @@ footer button:hover {
     overflow: hidden;
 }
 
+/* Problem List */
+
+#problem-list-section {
+    min-height: 400px;
+}
+
+#problem-list-section a {
+    color: white;
+    font-size: 16pt;
+}
+
+#problem-list-section a:hover {
+    color: white;
+    text-decoration: underline;
+    font-size: 16pt;
+}
+
+#problem-list-section .solved-problem, #problem-list-section .solved-problem:hover {
+    color: #168900;
+}
+
+
 /* Checkmark visual and animation */
 
 .checkmark__circle {
