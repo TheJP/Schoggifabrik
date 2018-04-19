@@ -1,15 +1,24 @@
 ﻿'use strict';
 
+let codeChanged = false;
+
 // Setup code editor
 (() => {
     const textarea = document.getElementById('code');
     if (!textarea) { return; }
+
     textarea.value = textarea.value.trim() + '\n';
     const editor = CodeMirror.fromTextArea(textarea, {
         lineNumbers: true,
         matchBrackets: true,
         theme: 'material'
     });
+
+    // Prevent closing of site while there could be unsaved changes
+    editor.on('change', () => codeChanged = true);
+    window.onbeforeunload = () => {
+        if (codeChanged) { return 'prevent potential data loss'; }
+    };
 
     editor.focus();
     editor.setCursor(editor.lineCount(), 0);
@@ -75,6 +84,7 @@ $(document).ready(() => {
             dataType: 'json',
             data: $this.serialize(),
             success: data => {
+                codeChanged = false;
                 waitingForTaskId = data.id;
                 refreshResults();
                 const $resultSection = $('#result-section');
