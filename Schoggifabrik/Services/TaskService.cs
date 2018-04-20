@@ -41,7 +41,7 @@ namespace Schoggifabrik.Services
             var storageRoot = configuration.GetValue("Docker:StorageRoot", "TaskData");
             this.storageRoot = Directory.CreateDirectory(storageRoot);
 
-            shell = configuration.GetValue("SCHOGGIFABRIK:SHELL", "bash");
+            shell = configuration.GetValue("SCHOGGIFABRIK:SHELL", "/bin/bash");
         }
 
         private string CompileCommand(string codeFileName, string taskId, string compileLog) =>
@@ -225,17 +225,21 @@ namespace Schoggifabrik.Services
         {
             // Setup process
             logger.LogDebug("{} -c '{}'", shell, command);
-            var process = new Process();
-            process.StartInfo.FileName = shell;
-            process.StartInfo.Arguments = $"-c '{command}'";
-            process.StartInfo.UseShellExecute = false;
 
-            // Redirect all input and output
-            process.StartInfo.RedirectStandardInput = true;
-            process.StartInfo.RedirectStandardOutput = true;
-            process.StartInfo.RedirectStandardError = true;
+            var startInfo = new ProcessStartInfo()
+            {
+                FileName = shell,
+                Arguments = $"-c '{command}'",
+                UseShellExecute = false,
+                CreateNoWindow = true,
 
-            process.Start();
+                // Redirect all input and output
+                RedirectStandardInput = true,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+            };
+
+            var process = Process.Start(startInfo);
 
             // Send given input to created process
             if (input != null)
