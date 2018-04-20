@@ -229,7 +229,7 @@ namespace Schoggifabrik.Services
             var startInfo = new ProcessStartInfo()
             {
                 FileName = shell,
-                Arguments = $"-c '{command}'",
+                Arguments = $"-c \"{command.Replace("\"", "\\\"")}\"",
                 UseShellExecute = false,
                 CreateNoWindow = true,
 
@@ -255,8 +255,10 @@ namespace Schoggifabrik.Services
                 CommandError error;
                 if (process.HasExited)
                 {
+                    var errorOutput = process.StandardError.ReadToEnd();
                     logger.LogWarning("Task had non zero exit code {}", process.ExitCode);
-                    error = new FailedCommandError(process.StandardError.ReadToEnd());
+                    logger.LogWarning("Task error output: '{}'", errorOutput);
+                    error = new FailedCommandError(errorOutput);
                 }
                 else
                 {
