@@ -215,6 +215,10 @@ footer button:hover {
     overflow: hidden;
 }
 
+footer a, footer button {
+    padding: 0px 8px;
+}
+
 /* Problem List */
 
 #problem-list-section a {
