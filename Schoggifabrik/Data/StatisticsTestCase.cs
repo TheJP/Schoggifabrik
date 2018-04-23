@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Optional;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -8,24 +9,40 @@ namespace Schoggifabrik.Data
 {
     public class StatisticsTestCase : TestCase
     {
+        private const double Epsilon = 1e-3;
+
         public StatisticsTestCase(IEnumerable<int> input) : base(ConvertInput(input), CreateOutputTest(input)) { }
 
-        private static string ConvertInput(IList<int> input) => String.Join(' ', input);
+        public StatisticsTestCase(params int[] input) : this((IEnumerable<int>)input) { }
 
-        private static Func<string, bool> CreateOutputTest(IList<int> input)
+        private static string ConvertInput(IEnumerable<int> input) => String.Join(' ', input);
+
+        private static Func<string, bool> CreateOutputTest(IEnumerable<int> input)
         {
             var expected = new double[] {
                 input.Min(),
                 input.Max(),
                 input.Average(),
-                //TODO
-                input.Count,
+                Median(input.OrderBy(x => x).ToArray()),
+                input.Count(),
                 input.Sum(),
             };
 
             return actual =>
             {
-                //TODO: actual.Split();
+                var actualOptions = actual
+                    .Split(new char[] { }, StringSplitOptions.RemoveEmptyEntries)
+                    .Select(number => double.TryParse(number, out var parsed) ? Option.Some(parsed) : Option.None<double>());
+                if (actualOptions.Any(option => !option.HasValue)) { return false; }
+
+                var actualNumbers = actualOptions.Select(option => option.ValueOr(0.0)).ToArray();
+                if (actualNumbers.Length != expected.Length) { return false; }
+
+                for (int i = 0; i < expected.Length; ++i)
+                {
+                    if (Math.Abs(expected[i] - actualNumbers[i]) > Epsilon) { return false; }
+                }
+
                 return true;
             };
         }

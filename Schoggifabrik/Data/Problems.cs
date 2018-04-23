@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Schoggifabrik.Data
 {
@@ -38,7 +39,7 @@ namespace Schoggifabrik.Data
                     "Er gibt allerdings zu, dass diese einfache Aufgabe nur ein kleiner Test war um zu prüfen, " +
                     "ob du gewappnet für das Berufsleben als Schoggifabriksoftwareentwickler bist.</p>" +
                     "<p>Die Begrüssung im Visitor Centre sieht zwar toll aus, ist aber unpersönlich und immer gleich. " +
-                    "Erweitere dein Haskell Programm um Gäste mit ihrem Namen anzusprechen.",
+                    "Erweitere dein Haskell Programm um <span class=\"highlight\">Gäste mit ihrem Namen anzusprechen</span>.",
                 input: "Die 1. Inputzeile enthält jeweils den Namen mit welchem der Gast begrüsst werden soll.</p>" +
                     "<p>Beispiele: <code>Paul</code> oder <code>Herr Gummi</code>",
                 output: "Den String <span class=\"highlight\">\"Willkommen NAME!\"</span>, wobei NAME durch den Namen zu ersetzen ist.</p>" +
@@ -65,12 +66,15 @@ namespace Schoggifabrik.Data
                     "Minumum, Maximum, Durchschnitt, Median, Anzahl und Summe</span> der eingegebenen Qualitäten.</p>" +
                     "<p>Beispiel Output: <code>55 55 55 55 1 55</code> oder <code>1 6 3 2.5 4 12</code>",
                 stubCode: "main = do\n"+
-                    "  values <- getLine >>= (return.fmap readInt.words)\n" +
+                    "  values <- getLine >>= (return.fmap readDouble.words)\n" +
                     "  mapM_ print values\n\n" +
-                    "readInt :: String -> Int\n" +
-                    "readInt = read",
+                    "readDouble :: String -> Double\n" +
+                    "readDouble = read",
                 testCases: new Problem.TestCase[] {
-                    // TODO: Add testcases
+                    new StatisticsTestCase(55),
+                    new StatisticsTestCase(1, 2, 3, 6),
+                    new StatisticsTestCase(Enumerable.Range(0, 100).ToArray()),
+                    new StatisticsTestCase(12, 54, 23, 91, 49, 98, 85, 97),
                 }),
         };
     }
