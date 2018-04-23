@@ -27,8 +27,12 @@ namespace Schoggifabrik.Controllers
         {
             if (session.IsTaskRunning && !TaskService.TryGetRunningTask(session.RunningTaskId, out var _))
             {
-                if (TaskService.TryGetTask(session.RunningTaskId, out var finishedTask) && finishedTask.Result is TaskData.Success)
-                {
+                if (
+                    TaskService.TryGetTask(session.RunningTaskId, out var finishedTask) &&
+                    finishedTask.Result is TaskData.Success &&
+                    session.CurrentProblemId < Problems.Count &&
+                    Problems.AsList[session.CurrentProblemId] == finishedTask.Problem
+                ){
                     session = session.AdvanceToNextProblem();
                 }
                 session = session.RemoveRunningTaskId();

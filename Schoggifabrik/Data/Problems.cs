@@ -85,7 +85,7 @@ namespace Schoggifabrik.Data
                     "Die Temperaturbereiche konkreter Maschinen und Schoggi sind bekannt, aber viel zu unübersichtlich durch viele Redundanzen und Überlappungen. " +
                     "Deine Aufgabe ist es, die erhaltenen Werte zusammenzufassen, bis keine Redundanzen oder Überlappungen mehr vorkommen.",
                 input: "Die 1. Zeile enthält die Anzahl n der Tempraturbereiche. Die Zeilen 2 bis 2+n enthalten jeweils einen Temperaturbereich als Zahlenpaar min<sub>i</sub> max<sub>i</sub>. " +
-                    "Wobei -100'000'000 &le; min<sub>i</sub> &lt; max<sub>i</sub> &le; 100'000'000 die Temperaturen in µ°C</p>" +
+                    "Wobei -100'000'000 &le; min<sub>i</sub> &lt; max<sub>i</sub> &le; 100'000'000 die Temperaturen in µ°C.</p>" +
                     "<p><code class=\"code-block\">3\n3 5\n7 9\n1 3</code> oder <code class=\"code-block\">3\n0 100\n101 555\n-1 0</code>",
                 output: "Die zusammengefassten Temperaturbereiche jeweils als 1 Zahlenpaar min<sub>j</sub> max<sub>j</sub> pro Zeile. Zum Beispiel:</p>" +
                     "<p><code class=\"code-block\">1 5\n7 9</code> oder <code class=\"code-block\">-1 100\n101 555</code>",
