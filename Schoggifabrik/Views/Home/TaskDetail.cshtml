@@ -1,0 +1,12 @@
+﻿@model TaskDetailViewModel
+@{ ViewBag.Title = "Detail"; }
+
+<section>
+    <h2>Compile Output <span class="pull-right result-status status-@(Model.Task.Status.ToString().ToLowerInvariant())">@Model.Task.StatusText</span></h2>
+    <p class="compile-output" readonly="readonly">@Html.Raw(Model.CompileOutput.Replace("\n", "<br />"))</p>
+</section>
+
+<section>
+    <h2>Code</h2>
+    <textarea id="code" class="readonly">@Html.Raw(Model.Source)</textarea>
+</section>

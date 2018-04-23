@@ -229,6 +229,11 @@ footer a, footer button {
     color: #168900;
 }
 
+/* Task Detail */
+
+.compile-output {
+    font-family: 'Consolas', monospace, sans-serif;
+}
 
 /* Checkmark visual and animation */
 

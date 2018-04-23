@@ -21,16 +21,7 @@
 <section id="code-section">
     <h2>Code</h2>
     <form id="code-form" asp-area="" asp-controller="Home" asp-action="SubmitCode" asp-route-id="@ViewContext.RouteData.Values["id"]" method="post">
-        <textarea id="code" name="code">@Html.Raw(Model.StubCode)@*
-main = do
-    (a:b:vs) &lt;- (fmap words getContents)
-    let (w, h, values)=(readInt a, readInt b, fmap readInt vs)
-    print w
-    print h
-
-readInt :: String -> Int
-readInt = read
-        *@</textarea>
+        <textarea id="code" name="code">@Html.Raw(Model.StubCode)</textarea>
         <button id="code-submit" type="submit" class="button">
             <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
                 <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none" />

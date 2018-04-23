@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -26,7 +27,7 @@ namespace Schoggifabrik.Controllers
         {
             if (session.IsTaskRunning && !TaskService.TryGetRunningTask(session.RunningTaskId, out var _))
             {
-                if(TaskService.TryGetTask(session.RunningTaskId, out var finishedTask) && finishedTask.Result is TaskData.Success)
+                if (TaskService.TryGetTask(session.RunningTaskId, out var finishedTask) && finishedTask.Result is TaskData.Success)
                 {
                     session = session.AdvanceToNextProblem();
                 }
@@ -39,7 +40,7 @@ namespace Schoggifabrik.Controllers
         {
             var session = UpdateSession(HttpContext.GetSessionData());
 
-            if(session.CurrentProblemId >= Problems.Count && (!id.HasValue || id == session.CurrentProblemId))
+            if (session.CurrentProblemId >= Problems.Count && (!id.HasValue || id == session.CurrentProblemId))
             {
                 return RedirectToAction(nameof(Success), new { });
             }
@@ -112,6 +113,26 @@ namespace Schoggifabrik.Controllers
                 return RedirectToAction(nameof(Index));
             }
             return View();
+        }
+
+        public IActionResult TaskDetail(string id)
+        {
+            var session = UpdateSession(HttpContext.GetSessionData());
+            HttpContext.SetSessionData(session);
+            if (id == null || !session.TaskIds.Contains(id) || !TaskService.TryGetTask(id, out var task))
+            {
+                return RedirectToAction(nameof(Index));
+            }
+
+            try
+            {
+                var (source, compileOutput) = TaskService.GetTaskDetails(task.TaskId);
+                return View(new TaskDetailViewModel(task.ToViewModel(), source, compileOutput));
+            }
+            catch (Exception)
+            {
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         public IActionResult Error()

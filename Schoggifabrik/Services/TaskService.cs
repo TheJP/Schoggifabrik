@@ -72,6 +72,19 @@ namespace Schoggifabrik.Services
         public bool TryGetTask(string taskId, out TaskData task) => completedTasks.TryGetValue(taskId, out task) || tasks.TryGetValue(taskId, out task);
 
         /// <summary>
+        /// Reads the submitted source code and compile output from the disk.
+        /// </summary>
+        /// <param name="taskId">Id of the targeted task.</param>
+        /// <returns>Source code and compile output.</returns>
+        public (string source, string compileOutput) GetTaskDetails(string taskId)
+        {
+            var taskPath = Path.Combine(storageRoot.FullName, taskId);
+            var sourcePath = Path.Combine(taskPath, CodeFileName);
+            var compileOutputPath = Path.Combine(taskPath, CompileLog);
+            return (File.ReadAllText(sourcePath, Encoding.UTF8), File.ReadAllText(compileOutputPath, Encoding.UTF8));
+        }
+
+        /// <summary>
         /// Creates and runs a task for the given problem number using the given code.
         /// </summary>
         /// <param name="problem">Problem that this code tries to solve.</param>

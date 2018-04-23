@@ -8,11 +8,16 @@ let codeChanged = false;
     if (!textarea) { return; }
 
     textarea.value = textarea.value.trim() + '\n';
-    const editor = CodeMirror.fromTextArea(textarea, {
+
+    const options = {
         lineNumbers: true,
         matchBrackets: true,
         theme: 'material'
-    });
+    };
+    if ($(textarea).hasClass('readonly')) {
+        options['readOnly'] = 'nocursor';
+    }
+    const editor = CodeMirror.fromTextArea(textarea, options);
 
     // Prevent closing of site while there could be unsaved changes
     editor.on('change', () => codeChanged = true);
@@ -110,7 +115,7 @@ $(document).ready(() => {
         results.forEach(result => resultSection.append(
 `<div class="result">
     <div class="result-status status-${result.status.toLowerCase()}">${result.statusText}</div>
-    <div class="result-name" title="Task">${result.name}</div>
+    <div class="result-name" title="Task"><a href="/Home/TaskDetail/${result.id}">${result.name}</a></div>
 </div>`
         ));
     };
