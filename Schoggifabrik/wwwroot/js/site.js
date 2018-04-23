@@ -16,7 +16,7 @@ let codeChanged = false;
         extraKeys: { 'Tab': editor => editor.execCommand('insertSoftTab') },
     };
     if ($(textarea).hasClass('readonly')) {
-        options['readOnly'] = 'nocursor';
+        options['readOnly'] = true;
     }
     const editor = CodeMirror.fromTextArea(textarea, options);
 
