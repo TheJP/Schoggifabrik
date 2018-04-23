@@ -12,7 +12,8 @@ let codeChanged = false;
     const options = {
         lineNumbers: true,
         matchBrackets: true,
-        theme: 'material'
+        theme: 'material',
+        extraKeys: { 'Tab': editor => editor.execCommand('insertSoftTab') },
     };
     if ($(textarea).hasClass('readonly')) {
         options['readOnly'] = 'nocursor';
