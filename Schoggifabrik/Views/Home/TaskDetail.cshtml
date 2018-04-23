@@ -3,7 +3,7 @@
 
 <section>
     <h2>Compile Output <span class="pull-right result-status status-@(Model.Task.Status.ToString().ToLowerInvariant())">@Model.Task.StatusText</span></h2>
-    <p class="compile-output" readonly="readonly">@Html.Raw(Model.CompileOutput.Replace("\n", "<br />"))</p>
+    <p class="compile-output" readonly="readonly">@Model.CompileOutput</p>
 </section>
 
 <section>

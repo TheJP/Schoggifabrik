@@ -29,7 +29,7 @@ namespace Schoggifabrik.Data
                     "Dieser muss auf dem Standard-Output ausgegeben werden.",
                 stubCode: "-- Hier den Code einfügen der die Begrüssungsnachricht ausgibt\n"+
                     "-- Der Code muss in Haskell geschrieben werden",
-                testCases: new Problem.TestCase[] {
+                testCases: new[] {
                     Match(null, "Herzlich Willkommen!")
                 }),
 
@@ -45,7 +45,7 @@ namespace Schoggifabrik.Data
                 output: "Den String <span class=\"highlight\">\"Willkommen NAME!\"</span>, wobei NAME durch den Namen zu ersetzen ist.</p>" +
                     "<p>Beispiel Output: <code>Willkommen Paul!</code> oder <code>Willkommen Herr Gummi!</code>",
                 stubCode: "main = putStrLn \"Herzlich Willkommen!\"",
-                testCases: new Problem.TestCase[] {
+                testCases: new[] {
                     Match("Paul", "Willkommen Paul!"),
                     Match("Herr Gummi", "Willkommen Herr Gummi!"),
                     Match("Mr.  Sonderzeichen !&-*#@", "Willkommen Mr.  Sonderzeichen !&-*#@!"),
@@ -70,12 +70,45 @@ namespace Schoggifabrik.Data
                     "  mapM_ print values\n\n" +
                     "readDouble :: String -> Double\n" +
                     "readDouble = read",
-                testCases: new Problem.TestCase[] {
+                testCases: new[] {
                     new StatisticsTestCase(55),
                     new StatisticsTestCase(1, 2, 3, 6),
                     new StatisticsTestCase(Enumerable.Range(0, 100).ToArray()),
                     new StatisticsTestCase(12, 54, 23, 91, 49, 98, 85, 97),
                 }),
+
+            new Problem(
+                name: "Temperaturen",
+                flavor: "Durch das Auswerten deiner Statistiken sind die Verpackungstechnologen zum Schluss gekommen, dass die momentane Verpackungsqualität Mängel aufweist. " +
+                    "Nach genaueren Untersuchungen ist das Problem aufgefallen: Die Schoggi wurde nicht bei optimalen Temperaturen verpackt.</p>" +
+                    "<p>Hilf den Verpackungstechnologen gültige <span class=\"highlight\">Temperaturbereiche</span> zu berechnen. " +
+                    "Die Temperaturbereiche konkreter Maschinen und Schoggi sind bekannt, aber viel zu unübersichtlich durch viele Redundanzen und Überlappungen. " +
+                    "Deine Aufgabe ist es, die erhaltenen Werte zusammenzufassen, bis keine Redundanzen oder Überlappungen mehr vorkommen.",
+                input: "Die 1. Zeile enthält die Anzahl n der Tempraturbereiche. Die Zeilen 2 bis 2+n enthalten jeweils einen Temperaturbereich als Zahlenpaar min<sub>i</sub> max<sub>i</sub>. " +
+                    "Wobei -100'000'000 &le; min<sub>i</sub> &lt; max<sub>i</sub> &le; 100'000'000 die Temperaturen in µ°C</p>" +
+                    "<p><code class=\"code-block\">3\n3 5\n7 9\n1 3</code> oder <code class=\"code-block\">3\n0 100\n101 555\n-1 0</code>",
+                output: "Die zusammengefassten Temperaturbereiche jeweils als 1 Zahlenpaar min<sub>j</sub> max<sub>j</sub> pro Zeile. Zum Beispiel:</p>" +
+                    "<p><code class=\"code-block\">1 5\n7 9</code> oder <code class=\"code-block\">-1 100\n101 555</code>",
+                stubCode: String.Join('\n', new []{
+                    "main = do",
+                    "  n <- fmap readInt getLine",
+                    "  ranges <- getContents >>= (return.take n.clump.map readInt.words)",
+                    "  let solution = ranges -- TODO: Implement",
+                    "  mapM_ print solution",
+                    "",
+                    "readInt :: String -> Int",
+                    "readInt = read",
+                    "",
+                    "clump :: [Int] -> [(Int, Int)]",
+                    "clump (a:b:xs) = (a, b) : clump xs",
+                }),
+                testCases: new[] {
+                    new TemperatureTestCase((3, 5), (7, 9), (1, 3)),
+                    new TemperatureTestCase((0, 100), (101, 555), (-1, 0)),
+                    new TemperatureTestCase((1, 100), (10, 15), (-1, 0)),
+                    new TemperatureTestCase(Enumerable.Range(0, 1_000_000).Select(i => (i, i + 1))), // Merge everything
+                    new TemperatureTestCase(Enumerable.Range(0, 10_000).Select(i => i * 2).Select(i => (i, i + 1))), // Merge nothing
+                })
         };
     }
 }
