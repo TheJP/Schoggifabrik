@@ -126,8 +126,8 @@ namespace Schoggifabrik.Controllers
 
             try
             {
-                var (source, compileOutput) = TaskService.GetTaskDetails(task.TaskId);
-                return View(new TaskDetailViewModel(task.ToViewModel(), source, compileOutput));
+                var (source, compileOutput, firstTestCaseOutput) = TaskService.GetTaskDetails(task.TaskId);
+                return View(new TaskDetailViewModel(task.ToViewModel(), source, compileOutput, firstTestCaseOutput));
             }
             catch (Exception)
             {

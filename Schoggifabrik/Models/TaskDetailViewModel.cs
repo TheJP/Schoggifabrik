@@ -11,11 +11,14 @@ namespace Schoggifabrik.Models
         public string Source { get; }
         public string CompileOutput { get; }
 
-        public TaskDetailViewModel(TaskViewModel task, string source, string compileOutput)
+        public string OutputFirstTestCase { get; }
+
+        public TaskDetailViewModel(TaskViewModel task, string source, string compileOutput, string outputFirstTestCase)
         {
             Task = task;
             Source = source;
             CompileOutput = compileOutput;
+            OutputFirstTestCase = outputFirstTestCase;
         }
     }
 }

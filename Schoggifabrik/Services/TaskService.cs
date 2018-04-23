@@ -76,12 +76,17 @@ namespace Schoggifabrik.Services
         /// </summary>
         /// <param name="taskId">Id of the targeted task.</param>
         /// <returns>Source code and compile output.</returns>
-        public (string source, string compileOutput) GetTaskDetails(string taskId)
+        public (string source, string compileOutput, string outputFirstTestCase) GetTaskDetails(string taskId)
         {
             var taskPath = Path.Combine(storageRoot.FullName, taskId);
             var sourcePath = Path.Combine(taskPath, CodeFileName);
             var compileOutputPath = Path.Combine(taskPath, CompileLog);
-            return (File.ReadAllText(sourcePath, Encoding.UTF8), File.ReadAllText(compileOutputPath, Encoding.UTF8));
+            var firstTestCasePath = Path.Combine(taskPath, $"0.{RunOutputLog}");
+            return (
+                source: File.Exists(sourcePath) ? File.ReadAllText(sourcePath, Encoding.UTF8) : "",
+                compileOutput: File.Exists(compileOutputPath) ? File.ReadAllText(compileOutputPath, Encoding.UTF8) : "",
+                outputFirstTestCase: File.Exists(firstTestCasePath) ? File.ReadAllText(firstTestCasePath, Encoding.UTF8) : ""
+            );
         }
 
         /// <summary>

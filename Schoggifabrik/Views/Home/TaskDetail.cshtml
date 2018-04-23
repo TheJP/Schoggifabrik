@@ -3,10 +3,15 @@
 
 <section>
     <h2>Compile Output <span class="pull-right result-status status-@(Model.Task.Status.ToString().ToLowerInvariant())">@Model.Task.StatusText</span></h2>
-    <p class="compile-output" readonly="readonly">@Model.CompileOutput</p>
+    <p class="compile-output">@Model.CompileOutput</p>
 </section>
 
 <section>
     <h2>Code</h2>
     <textarea id="code" class="readonly">@Html.Raw(Model.Source)</textarea>
+</section>
+
+<section>
+    <h2>Output 1. Test</h2>
+    <p class="compile-output">@Model.OutputFirstTestCase</p>
 </section>
