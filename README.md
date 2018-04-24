@@ -7,9 +7,15 @@ The problems should be very easy for someone that already knows their way around
 ## Requirements
 
 * Docker
-* A bash shell that has docker its PATH variable
+* A bash shell that has docker in its PATH variable
   * Set the environment variable `SCHOGGIFABRIK:SHELL` or `SCHOGGIFABRIK__SHELL` to the path of the target shell
-  * Tested with the git MINGW64 bash shell on windows
+
+## Tested on
+
+* Windows 10
+  * docker 18.03.0-ce
+  * git version 2.17.0.windows.1 (C:\Program Files\Git\usr\bin\bash.exe as SCHOGGIFABRIK:SHELL)
+* Ubuntu 16.04 LTS
 
 ## Credits
 
