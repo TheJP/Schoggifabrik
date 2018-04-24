@@ -2,7 +2,7 @@
 
 A puzzle project: Write haskell code that fulfills the requirements to clear each level.
 
-The problems should be very easy for someone that already knows their way around haskell.
+The problems should be straight forward for someone who already knows their way around haskell.
 
 ## Requirements
 
